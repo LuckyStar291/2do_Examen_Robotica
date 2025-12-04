@@ -9,14 +9,13 @@ def main(args=None):
     env = TurtleBot3Env()
     processor = StateProcessor()
     
-    # IMPORTANTE: Ahora el estado se ajustará solo
     state_size = 14 
-    action_size = env.action_size # Esto tomará el valor 3 automáticamente
+    action_size = env.action_size
     agent = DQNAgent(state_size, action_size)
     
-    EPISODES = 300 # Suficiente para esta estrategia rápida
+    EPISODES = 300
     
-    print("🤖 SISTEMA DQN: MODO HAMBRE DE MOVIMIENTO")
+    print("SISTEMA DQN: MODO HAMBRE DE MOVIMIENTO")
 
     try:
         for e in range(EPISODES):
@@ -45,14 +44,14 @@ def main(args=None):
                 steps += 1
                 
                 if steps > 500:
-                    print("⌛ Tiempo agotado.")
+                    print("Tiempo agotado.")
                     done = True
 
             print(f"Episodio: {e} | Puntos: {total_reward:.2f} | Epsilon: {agent.epsilon:.2f}")
             if e % 10 == 0: agent.save()
 
     except KeyboardInterrupt:
-        print("🛑 Detenido.")
+        print("Detenido.")
     
     finally:
         agent.save()

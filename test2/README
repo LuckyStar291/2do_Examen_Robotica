@@ -1,0 +1,42 @@
+README
+
+1. Descarga y preparación de archivos
+a) Para cargar el codigo a su placa ESP32: Abrir la carpeta ~/…/test2/test_ej2
+y compilar ese archivo en su placa, las conexiones de los pines se encuentran dentro del codigo.
+
+b) Para la ejecución correcta del proyecto, es necesario descargar los dos archivos del siguiente enlace:
+https://drive.google.com/drive/folders/1W4o1lLWoxtzip3PO2Qi9y1yUasqX7DO7?usp=sharing
+
+Una vez descargados, descomprimirlos y colocarlos en la ruta:
+ej2/kinect_data2
+
+Los nombres deben coincidir exactamente con los siguientes (tal y como en la fotografia en la misma carpeta):
+- kinect_data2_0.db3
+- metadata.yaml
+
+En caso de que los archivos tengan un nombre distinto, deben ser renombrados manualmente.
+
+2. Procedimiento de ejecución en diferentes terminales
+
+El proyecto requiere cuatro terminales ejecutándose en paralelo para habilitar correctamente todos los componentes del sistema.
+
+Terminal 1 – Ruta de acceso: ~/…/test2/ej2/ros2_ws
+	Instrucciones:
+		colcon build --packages-select gesture_control
+		source install/setup.bash
+		ros2 run gesture_control gestures_node
+
+Terminal 2 – Ruta de acceso: ~/…/test2/ej2/ros2_ws
+	Instrucciones:
+		source /opt/ros/humble/setup.bash
+		ros2 bag play kinect_data2
+
+Terminal 3 – Ubicación indiferente. Si el nodo compila correctamente pero la placa no es reconocida desconectar la placa unos 3 segundos y volver a conectar sin cortar el comando.
+	Instruccion:
+		docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:humble serial --dev /dev/ttyUSB0 -b 115200 -v6
+
+Terminal 4 – Gazebo
+	Instrucción:
+		ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+

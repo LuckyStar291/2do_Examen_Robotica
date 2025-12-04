@@ -21,15 +21,11 @@ class TurtleBot3Env(Node):
         self.position = Point()
         self.goal_x = 1.0
         self.goal_y = 0.0
-        self.last_goal_dist = 0.0 # Variable clave para medir el progreso
-
-        # --- CAMBIO IMPORTANTE: SOLO 3 ACCIONES ---
-        # Quitamos los giros fuertes. Ahora solo puede ir adelante o girar suavemente MIENTRAS avanza.
-        # Esto hace imposible que se quede girando en el sitio.
+        self.last_goal_dist = 0.0 
         self.actions = [
-            (0.20, 0.0),   # 0: Adelante Rápido
-            (0.15, 0.6),   # 1: Izquierda avanzando
-            (0.15, -0.6)   # 2: Derecha avanzando
+            (0.20, 0.0), 
+            (0.15, 0.6), 
+            (0.15, -0.6)   
         ]
         self.action_size = len(self.actions)
 
@@ -44,48 +40,36 @@ class TurtleBot3Env(Node):
         inc_y = self.goal_y - self.position.y
         inc_x = self.goal_x - self.position.x
         angle_to_goal = math.atan2(inc_y, inc_x)
-        # Simplificamos el retorno del ángulo (asumimos que el estado lo maneja)
         return goal_dist, 0 
 
     def step(self, action_idx):
         linear, angular = self.actions[action_idx]
-        
-        # 1. Mover
         cmd = Twist()
         cmd.linear.x = linear
         cmd.angular.z = angular
         self.pub_cmd_vel.publish(cmd)
         
         rclpy.spin_once(self, timeout_sec=0.1)
-        
-        # 2. Calcular nueva distancia
         curr_dist = math.sqrt((self.goal_x - self.position.x)**2 + (self.goal_y - self.position.y)**2)
         done = False
         
-        # --- RECOMPENSA BASADA EN EL HAMBRE DE MOVIMIENTO ---
-        # Calculamos la diferencia: ¿Estoy más cerca que hace 0.1 segundos?
         progress = self.last_goal_dist - curr_dist
         
         if progress > 0:
-            # SI AVANZÓ: Premio muy grande (multiplicado por 100)
             reward = progress * 100.0 
         else:
-            # SI SE QUEDÓ QUIETO O RETROCEDIÓ: Castigo
             reward = -5.0
             
-        # Actualizamos la memoria para el siguiente paso
         self.last_goal_dist = curr_dist
 
-        # Choque
         if self.scan_data and np.min(self.scan_data.ranges) < 0.22:
             reward = -100
             done = True
             
-        # Meta
         if curr_dist < 0.50:
             reward = 200
             done = True
-            print("🏁 ¡DIANA! LLEGÓ MOVIÉNDOSE")
+            print("¡DIANA! LLEGÓ MOVIÉNDOSE")
             
         return self.scan_data, curr_dist, 0, reward, done
 
@@ -101,7 +85,6 @@ class TurtleBot3Env(Node):
         
         time.sleep(0.5)
         
-        # Generar objetivo fácil para empezar (al frente o lado cercano)
         quadrant = np.random.choice([0, 1])
         if quadrant == 0: 
             self.goal_x, self.goal_y = 1.5, 0.0
@@ -114,8 +97,6 @@ class TurtleBot3Env(Node):
             if self.scan_data is not None:
                 if np.min(self.scan_data.ranges) > 0.22:
                     break
-        
-        # ¡IMPORTANTE! Inicializar la distancia base
         self.last_goal_dist = math.sqrt((self.goal_x - self.position.x)**2 + (self.goal_y - self.position.y)**2)
         
         return self.scan_data

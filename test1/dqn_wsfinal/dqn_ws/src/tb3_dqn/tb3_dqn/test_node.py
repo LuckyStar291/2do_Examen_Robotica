@@ -17,22 +17,21 @@ def main(args=None):
     action_size = env.action_size
     agent = DQNAgent(state_size, action_size)
     
-    # --- RUTA ESTRATÉGICA ---
     mis_puntos = [
-        (1.5, 0.0),    # 1. Recto a fondo
-        (1.5, -1.0),   # 2. Derecha fondo
-        (0.5, -0.5),   # 3. Derecha centro
-        (0.0, 0.0),    # 4. Volviendo
-        (0.5, 0.5)     # 5. Izquierda suave
+        (1.5, 0.0),    
+        (1.5, -1.0), 
+        (0.5, -0.5), 
+        (0.0, 0.0),   
+        (0.5, 0.5)    
     ]
     
     model_path = 'trained_model.pkl'
     if os.path.exists(model_path):
-        print(f"📂 Cargando modelo desde: {model_path}")
+        print(f"Cargando modelo desde: {model_path}")
         with open(model_path, 'rb') as f:
             agent.model = pickle.load(f)
     else:
-        print("❌ ¡ERROR! No modelo.")
+        print("¡ERROR! No modelo.")
         return
 
     agent.epsilon = 0.0
@@ -40,7 +39,7 @@ def main(args=None):
     NUM_EPISODES = 20
     success_count = 0
     
-    print("🏁 INICIANDO PRUEBAS CON ASISTENCIA DE MOVIMIENTO...")
+    print(" INICIANDO PRUEBAS CON ASISTENCIA DE MOVIMIENTO...")
 
     try:
         for e in range(NUM_EPISODES):
@@ -67,26 +66,20 @@ def main(args=None):
             done = False
             steps = 0
             
-            # --- VARIABLE ANTI-GIROS ---
             spin_counter = 0
             
             while not done:
-                # 1. Preguntar al cerebro qué hacer
+
                 action = agent.act(state)
                 
-                # --- 2. LA INTERVENCIÓN (EL FIX) ---
-                # Si la acción es girar (3 o 4) o girar suave (1 o 2) sin avanzar mucho
                 if action != 0: 
                     spin_counter += 1
                 else:
-                    spin_counter = 0 # Si va recto, reseteamos contador
-                
-                # Si lleva 3 pasos girando a lo loco, ¡LE OBLIGAMOS A IR RECTO!
+                    spin_counter = 0 
                 if spin_counter >= 3:
-                    # print("⚠️ ¡Empujando robot!") # Descomenta si quieres ver cuándo actúa
-                    action = 0 # FORZAR ADELANTE
+                    action = 0 
                     spin_counter = 0
-                # -----------------------------------
+
 
                 next_scan, dist, angle, reward, done = env.step(action)
                 
@@ -97,14 +90,13 @@ def main(args=None):
                 state = processor.process_scan(next_scan, dist, angle)
                 steps += 1
                 
-                # Criterio de éxito generoso
                 if reward >= 200 or dist < 0.55:
                     success_count += 1
-                    print("   🏆 ¡OBJETIVO ALCANZADO!")
+                    print("   ¡OBJETIVO ALCANZADO!")
                     done = True 
                 
                 if steps > 600:
-                    print("   ⌛ Tiempo agotado.")
+                    print("   Tiempo agotado.")
                     done = True
 
     except KeyboardInterrupt:
